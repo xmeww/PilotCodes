@@ -1,0 +1,87 @@
+% function [HitRate,FalseAlarmRate,dPrime] = Ana_Aselect(acc,Apresent,coh_levels,Coh)
+%     HitRate = length(find(acc == 1))/length(find( Apresent == 1));
+%     FalseAlarmRate = length(find(acc == 0))/length(find( Apresent == 0));
+%     dPrime = normvin(HitRate,1,0) - normvin(FalseAlarmRate,1,0);
+%     
+% for c = 1:length(coh_levels)
+% end
+% vpre_conds_mean = mean(acc(Vpresent == 1 & Coh == ),acc(),acc())
+% plot(coh_levels,)
+% groupsummary(T,{'Vpresent','Coh'},'mean','std')
+% groupsummary(T,{'Gender','Smoker'},'mean','Weight')
+% [B,BG,BC] = groupsummary(Weight,{Gender,Smoker},'mean','IncludeEmptyGroups',true)
+
+% V present correct
+ntrialTest = size(rt,1);
+nblockTest = 1;%size(acc,2);
+Vpresent = Tr.Vpresent(ind);
+
+coh = Tr.Coh(ind);
+% rt = rt;%rt(1:ntrialTest,1:nblockTest);
+% acc = ones(size(rt))%acc(1:ntrialTest,1:nblockTest);
+nItems = Tr.nItems(ind);
+Apresent = Tr.Apresent(ind);
+syncVTar = Tr.syncVTar(ind);
+
+length(find(acc == 1 ))/length(find(Vpresent==1)) % hit rate
+length(find(acc == 0 ))/length(find(Vpresent==1)) % wrong key
+% length(find(acc == 0 ))/length(find(Vpresent==0)) % false alarm rate
+% A effect
+length(find(acc==1 & Apresent == 1))/length(find(Vpresent ==1 & Apresent ==1))
+length(find(acc==1 & Apresent == 0))/length(find(Vpresent ==1 & Apresent ==0))
+
+acc_Apre_nitem = arrayfun(@(n)length(find(acc ==1 & Apresent == 1 & nItems == n ))/length(find(Vpresent == 1 & nItems == n & Apresent == 1)),(Tr.nItem_levels)','UniformOutput',0);
+acc_Apre_nitem = [acc_Apre_nitem{:}]';
+acc_Aabs_nitem = arrayfun(@(n)length(find(acc ==1 & Apresent == 0 & nItems == n))/length(find(Vpresent == 1 & nItems == n & Apresent == 0)),(Tr.nItem_levels)','UniformOutput',0);
+acc_Aabs_nitem = [acc_Aabs_nitem{:}]';
+xname = 'Visual set size';
+yname = 'correct rate(%)';
+xtick = Tr.nItem_levels;
+Ylim = [0,1];
+effectMod = 'Audo tar'
+plot_vis_coh(repmat(Tr.nItem_levels',1,2),[acc_Aabs_nitem,acc_Apre_nitem],xname,yname,xtick,Ylim,effectMod);
+
+
+ 
+rt_Apre_nitem = arrayfun(@(n)mean(rt(find( acc == 1 & syncVTar == 1 & nItems == n))),(Tr.nItem_levels)','UniformOutput',0);
+rt_Apre_nitem = [ rt_Apre_nitem{:}]';
+rt_Aabs_nitem = arrayfun(@(n)mean(rt(find( acc == 1 & syncVTar == 0 & nItems == n))),(Tr.nItem_levels)','UniformOutput',0);
+rt_Aabs_nitem = [ rt_Aabs_nitem{:}]';
+xname = 'Visual set size';
+yname = 'reaction time(s)';
+xtick = Tr.nItem_levels;
+Ylim = 'auto';
+effectMod = 'Aud tar';
+plot_vis_coh(repmat(Tr.nItem_levels',1,2),[rt_Aabs_nitem,rt_Apre_nitem],xname,yname,xtick,Ylim,effectMod);
+
+
+[C,I]  = meshgrid(Tr.coh_levels,Tr.nItem_levels);
+acc_Apre_nitem = arrayfun(@(c,i)length(find(acc ==1 & Apresent == 1 & nItems == i & coh == c))/length(find(Vpresent == 1 & nItems == i & coh == c & Apresent == 1)),C,I,'UniformOutput',0);
+acc_Apre_nitem = reshape([acc_Apre_nitem{:}],length(Tr.nItem_levels),length(Tr.coh_levels));
+X = repmat(Tr.nItem_levels',1,length(Tr.coh_levels));
+xtick = Tr.nItem_levels;
+legdCoh = arrayfun(@(i) ['coh' num2str(i)],Tr.coh_levels,'UniformOutput',0);
+plot_nitem_coh(X, acc_Apre_nitem,xtick,[0,1],legdCoh,'Correact Rate(%)')
+
+
+%%
+[C,I]  = meshgrid(Tr.coh_levels,Tr.nItem_levels);
+rt_Apre_nitem_coh = arrayfun(@(c,i)mean(rt(acc ==1 & Apresent == 1 & nItems == i & coh == c)),C,I,'UniformOutput',0);
+rt_Apre_nitem_coh = reshape([rt_Apre_nitem_coh{:}],length(Tr.nItem_levels),length(Tr.coh_levels));
+xtick = Tr.nItem_levels;
+X = repmat(Tr.nItem_levels',1,length(Tr.coh_levels));
+xtick = Tr.nItem_levels;
+legdCoh = arrayfun(@(i) ['coh' num2str(i)],Tr.coh_levels,'UniformOutput',0);
+plot_nitem_coh(X, rt_Apre_nitem_coh,xtick,'auto',legdCoh,'Reaction Time(s)','A')
+
+plot_nitem_coh([X Tr.nItem_levels'], [rt_Apre_nitem_coh rt_Aabs_nitem],xtick,'auto',[legdCoh 'Abas'],'Reaction Time(s)')
+
+rt_Aabs_nitem_coh = arrayfun(@(c,i)mean(rt(acc ==1 & Apresent == 0 & nItems == i & coh == c)),C,I,'UniformOutput',0);
+rt_Aabs_nitem_coh = reshape([rt_Aabs_nitem_coh{:}],length(Tr.nItem_levels),length(Tr.coh_levels));
+xtick = Tr.nItem_levels;
+% legd = [num2str(Tr.coh_levels) 'tar abs'];
+X = repmat(Tr.nItem_levels',1,length(Tr.coh_levels)+1);
+plot_nitem_coh(X, [rt_Apre_nitem rt_Aabs_nitem_coh],xtick,'auto',[legdCoh ,'no tar'],'Reaction Time(s)')
+
+plot_nitemline(X,rt_Apre_nitem,Tr.nItem_levels)
+plot_nitemline_plusVabs([X,Tr.nItem_levels'],[rt_Apre_nitem_coh,rt_Aabs_nitem],Tr.coh_levels)
